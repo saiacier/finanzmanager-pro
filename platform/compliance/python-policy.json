@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "reviewed_at": "2026-11-03",
+  "scope": "Technische Lizenz-Eingangsprüfung der Python-Komponenten im FinanzManager-Paket; keine Rechts- oder Sicherheitsgarantie.",
+  "rule": "Nur hier aufgeführte Python-Distributionen dürfen in ein Programmpaket. Unbekannte Komponenten stoppen den Paketbau. Lizenztexte werden unter Legal/PythonProgram mitgeliefert. Alle Lizenzen sind mit GPL-3.0-or-later vereinbar.",
+  "distributions": {
+    "pywebview": {"license": "BSD-3-Clause", "note": "Programmfenster mit dem Browser-Baustein des Systems"},
+    "bottle": {"license": "MIT", "note": "von pywebview eingebunden, kein Netzwerkdienst genutzt"},
+    "proxy_tools": {"license": "MIT", "note": "von pywebview eingebunden", "license_file": "platform/compliance/python-texts/proxy_tools-LICENSE.txt"},
+    "typing_extensions": {"license": "PSF-2.0"},
+    "pyobjc-core": {"license": "MIT", "note": "macOS-Brücke", "license_file": "platform/compliance/python-texts/pyobjc-LICENSE.txt"},
+    "pyobjc-framework-Cocoa": {"license": "MIT"},
+    "pyobjc-framework-Quartz": {"license": "MIT"},
+    "pyobjc-framework-Security": {"license": "MIT", "license_file": "platform/compliance/python-texts/pyobjc-LICENSE.txt"},
+    "pyobjc-framework-UniformTypeIdentifiers": {"license": "MIT", "license_file": "platform/compliance/python-texts/pyobjc-LICENSE.txt"},
+    "pyobjc-framework-WebKit": {"license": "MIT"},
+    "pythonnet": {"license": "MIT", "note": "Windows-Brücke von pywebview"},
+    "clr_loader": {"license": "MIT", "note": "Windows-Brücke von pywebview"},
+    "cffi": {"license": "MIT-0", "note": "von clr_loader eingebunden"},
+    "pycparser": {"license": "BSD-3-Clause", "note": "von cffi eingebunden"},
+    "pywin32-ctypes": {"license": "BSD-3-Clause", "note": "Windows"},
+    "pyinstaller": {"license": "GPL-2.0-or-later WITH Bootloader-exception", "note": "Startprogramm des Pakets; die Ausnahme erlaubt die Weitergabe unabhängig von der Programmlizenz"},
+    "pyinstaller-hooks-contrib": {"license": "Apache-2.0 / GPL-2.0-or-later (Laufzeit-Hooks: Apache-2.0)"}
+  },
+  "runtime_libraries": {
+    "OpenSSL": {"license": "Apache-2.0", "notice": "OpenSSL aus der CPython-Distribution; Lizenz in CPython-LICENSE.txt referenziert."},
+    "libffi": {"license": "MIT", "notice": "libffi aus der CPython-Distribution; MIT-Lizenz."},
+    "mpdecimal": {"license": "BSD-2-Clause", "notice": "libmpdec aus der CPython-Distribution, Copyright (c) Stefan Krah; BSD-2-Clause."},
+    "xz": {"license": "0BSD", "notice": "liblzma aus der CPython-Distribution; 0BSD."},
+    "zlib": {"license": "Zlib", "notice": "zlib, Copyright (c) Jean-loup Gailly und Mark Adler; Zlib-Lizenz."},
+    "SQLite": {"license": "blessing (public domain)", "notice": "SQLite aus der CPython-Distribution; gemeinfrei."},
+    "expat": {"license": "MIT", "notice": "Expat aus der CPython-Distribution; MIT-Lizenz."}
+  }
+}

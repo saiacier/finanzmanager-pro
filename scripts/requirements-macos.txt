@@ -1,0 +1,10 @@
+# Build environment for the macOS package (versions reviewed in platform/compliance/python-policy.json)
+pywebview==6.2.1
+pyinstaller==6.22.3
+pyinstaller-hooks-contrib==2026.8
+pyobjc-core==13.0
+pyobjc-framework-Cocoa==13.0
+pyobjc-framework-WebKit==13.0
+pyobjc-framework-Quartz==13.0
+pyobjc-framework-Security==13.0
+pyobjc-framework-UniformTypeIdentifiers==13.0

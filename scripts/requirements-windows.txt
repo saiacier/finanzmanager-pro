@@ -1,0 +1,5 @@
+# Build environment for the Windows package; pywebview installs pythonnet and clr_loader.
+# Every bundled distribution must be listed in platform/compliance/python-policy.json.
+pywebview==6.2.1
+pyinstaller==6.22.3
+pyinstaller-hooks-contrib==2026.8

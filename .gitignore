@@ -1,0 +1,12 @@
+work/
+releases/
+__pycache__/
+*.pyc
+.DS_Store
+*.key
+*.p12
+*.fmb
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+platform/python/financecore/documents_generated.py
