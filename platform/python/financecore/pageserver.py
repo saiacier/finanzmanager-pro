@@ -12,6 +12,8 @@ from http.server import ThreadingHTTPServer,BaseHTTPRequestHandler
 from urllib.parse import urlparse,parse_qs
 import json,secrets,threading
 
+MAX_BODY=150*1024*1024
+
 class PageServer(ThreadingHTTPServer):
     daemon_threads=True
     def __init__(self,page,host_api,calls):
@@ -48,13 +50,28 @@ class _Handler(BaseHTTPRequestHandler):
         if not self.authenticated():return self.send(401,'Bitte FinanzManager starten und das dort geöffnete Fenster verwenden.'.encode())
         if u.path!='/':return self.send(404,b'Nicht gefunden')
         self.send(200,self.server.page().encode(),'text/html; charset=utf-8')
-    def json(self,value,status=200):self.send(status,json.dumps(value,ensure_ascii=False).encode(),'application/json; charset=utf-8')
+    def json(self,value,status=200,extra=None):self.send(status,json.dumps(value,ensure_ascii=False).encode(),'application/json; charset=utf-8',extra)
+    def length(self):
+        try:length=int(self.headers.get('Content-Length','0'))
+        except ValueError:return -1
+        return length if 0<=length<=MAX_BODY else -1
+    def reject(self,status,text):
+        """Discards the unread request body first: closing with unread data resets the connection
+        and the page would see a network error instead of this answer."""
+        length=self.length()
+        if length<0:
+            self.close_connection=True;return self.json({'error':text},status,{'Connection':'close'})
+        while length>0:
+            chunk=self.rfile.read(min(length,65536))
+            if not chunk:break
+            length-=len(chunk)
+        self.json({'error':text},status)
     def do_POST(self):
-        if self.headers.get('Host')!='127.0.0.1:%d'%self.server.server_port or not self.authenticated():return self.json({'error':'Zugriff verweigert.'},403)
-        if self.headers.get('Origin')!=self.server.origin or self.headers.get('Content-Type','').split(';')[0]!='application/json':return self.json({'error':'Fremde Anfrage blockiert.'},403)
+        if self.headers.get('Host')!='127.0.0.1:%d'%self.server.server_port or not self.authenticated():return self.reject(403,'Zugriff verweigert.')
+        if self.headers.get('Origin')!=self.server.origin or self.headers.get('Content-Type','').split(';')[0]!='application/json':return self.reject(403,'Fremde Anfrage blockiert.')
+        length=self.length()
+        if length<=0:return self.reject(400,'Anfrage ist leer oder zu groß.')
         try:
-            length=int(self.headers.get('Content-Length','0'))
-            if not 0<length<=150*1024*1024:raise ValueError('Anfrage ist leer oder zu groß.')
             data=json.loads(self.rfile.read(length));path=urlparse(self.path).path
             name=path[len('/api/host/'):] if path.startswith('/api/host/') else ''
             args=data.get('args',[]) if isinstance(data,dict) else None
