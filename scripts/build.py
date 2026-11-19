@@ -101,7 +101,10 @@ def notices(resources):
         if WINDOWS:
             for extra in entry.get('windows_license_files',[]):(out/name).mkdir(exist_ok=True);shutil.copy(ROOT/extra,out/name/Path(extra).name);copied+=1
         if not copied:raise ReleaseError('Lizenztext fehlt für '+name)
-    shutil.copy(Path(sysconfig.get_paths()['stdlib'])/'LICENSE.txt',out/'CPython-LICENSE.txt')
+    # macOS/Linux keep the CPython license in the standard library, Windows in the install folder.
+    cpython=next((p for p in [Path(sysconfig.get_paths()['stdlib'])/'LICENSE.txt',Path(sys.base_prefix)/'LICENSE.txt'] if p.is_file()),None)
+    if not cpython:raise ReleaseError('Lizenztext der Python-Laufzeit fehlt.')
+    shutil.copy(cpython,out/'CPython-LICENSE.txt')
     (out/'Runtime').mkdir()
     for lib,entry in policy['runtime_libraries'].items():(out/'Runtime'/(lib+'.txt')).write_text(entry['license']+'\n'+entry['notice']+'\n')
     (out/'components.json').write_text(json.dumps(dict(product=PRODUCT,version=VERSION,python=sys.version.split()[0],pyinstaller=metadata.version('pyinstaller'),components=components),indent=2,ensure_ascii=False)+'\n')
