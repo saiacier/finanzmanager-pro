@@ -154,7 +154,7 @@ def self_test(executable):
         test=Platform(home);test.set(terms_sha256=documents.TERMS_SHA256,terms_version=documents.TERMS_VERSION,terms_accepted_at='self-test')
         result=Path(home)/'self-test.json'
         subprocess.run([str(executable),'--home',home,'--self-test',str(result)],timeout=180,check=False)
-        outcome=json.loads(result.read_text()) if result.exists() else {}
+        outcome=json.loads(result.read_text(encoding='utf-8')) if result.exists() else {}
         if not outcome.get('ok') or not outcome.get('frozen'):raise ReleaseError('Selbsttest fehlgeschlagen: '+json.dumps(outcome,ensure_ascii=False))
         if not (Path(home)/'finanzmanager.sqlite3').exists():raise ReleaseError('Selbsttest hat keine Datenbank angelegt.')
         return outcome
