@@ -19,8 +19,9 @@ def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def main():
     programs=sorted(ROOT.glob('releases/FinanzManager-Pro-'+VERSION+'-*.zip'))
     if not programs:sys.exit('Bitte zuerst scripts/build.py ausführen.')
-    if OUT.exists():shutil.rmtree(OUT)
-    OUT.mkdir(parents=True)
+    # Empty the folder instead of replacing it: synced folders (OneDrive) may remove a recreated folder.
+    OUT.mkdir(parents=True,exist_ok=True)
+    for old in OUT.iterdir():shutil.rmtree(old) if old.is_dir() else old.unlink()
     for program in programs:shutil.copyfile(program,OUT/program.name)
     for slug,name in [('nutzung','FinanzManager.md'),('datenschutz','Datenschutz.md'),('impressum','Impressum.md'),('lizenzen','Komponenten.md'),('sicherheit','Sicherheit.md')]:
         shutil.copyfile(ROOT/'platform/terms'/name,OUT/(slug+'.txt'))

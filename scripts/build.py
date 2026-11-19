@@ -14,7 +14,7 @@ isolated start with a temporary data folder (--self-test) and ZIP with checksum.
 No user data or private keys are read or packaged.
 """
 from pathlib import Path
-import ast,hashlib,importlib.metadata as metadata,json,os,plistlib,re,shutil,struct,subprocess,sys,sysconfig,tempfile,zipfile
+import ast,hashlib,importlib.metadata as metadata,json,os,plistlib,re,shutil,subprocess,sys,sysconfig,tempfile,zipfile
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'platform/python'))
 from financecore import BUILD,BUNDLE_ID,PRODUCT,VERSION
@@ -49,15 +49,9 @@ def prepare():
     shutil.copy(ROOT/'platform/terms/Komponenten.md',legal/'README.md')
     return web,legal
 
-def ico(png,target):
-    """Windows icon with the PNG image embedded (supported since Windows Vista)."""
-    data=Path(png).read_bytes()
-    Path(target).write_bytes(struct.pack('<HHH',0,1,1)+struct.pack('<BBBBHHII',0,0,0,0,1,32,len(data),22)+data)
-    return target
-
 def pyinstaller(web,legal):
     WORK.mkdir(parents=True,exist_ok=True);sep=os.pathsep
-    icon=ROOT/'apps/FinanzManager/Resources/AppIcon.icns' if MAC else ico(ROOT/'apps/FinanzManager/Web/assets/app-icon.png',WORK/'FinanzManager.ico')
+    icon=ROOT/'apps/FinanzManager/Resources'/('AppIcon.icns' if MAC else 'AppIcon.ico')
     args=[sys.executable,'-m','PyInstaller','--noconfirm','--clean','--windowed','--onedir','--name',PRODUCT,'--distpath',DIST,'--workpath',WORK,'--specpath',WORK,
           '--icon',icon,'--paths',ROOT/'platform/python','--collect-submodules','financecore','--add-data',str(web)+sep+'Web','--add-data',str(legal)+sep+'Legal']
     if MAC:args+=['--osx-bundle-identifier',BUNDLE_ID]
@@ -104,6 +98,8 @@ def notices(resources):
             if '.dist-info/' in text and ('/licenses/' in text or Path(text).name.upper().startswith(('LICENSE','LICENCE','COPYING','NOTICE','AUTHORS'))):
                 target=out/name/text.split('.dist-info/',1)[1];target.parent.mkdir(parents=True,exist_ok=True);shutil.copy(dist.locate_file(item),target);copied+=1
         if entry.get('license_file'):(out/name).mkdir(exist_ok=True);shutil.copy(ROOT/entry['license_file'],out/name/'LICENSE.txt');copied+=1
+        if WINDOWS:
+            for extra in entry.get('windows_license_files',[]):(out/name).mkdir(exist_ok=True);shutil.copy(ROOT/extra,out/name/Path(extra).name);copied+=1
         if not copied:raise ReleaseError('Lizenztext fehlt für '+name)
     shutil.copy(Path(sysconfig.get_paths()['stdlib'])/'LICENSE.txt',out/'CPython-LICENSE.txt')
     (out/'Runtime').mkdir()
