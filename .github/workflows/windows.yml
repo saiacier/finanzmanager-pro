@@ -15,8 +15,8 @@ jobs:
     env:
       PYTHONUTF8: '1'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
       - name: Bauumgebung
@@ -26,8 +26,18 @@ jobs:
       - name: Tests
         run: work\build-env\Scripts\python -m unittest discover -s tests
       - name: Paket bauen und Selbsttest
-        run: work\build-env\Scripts\python scripts\build.py
-      - uses: actions/upload-artifact@v4
+        shell: pwsh
+        run: |
+          work\build-env\Scripts\python scripts\build.py *> build.log
+          $code = $LASTEXITCODE
+          Get-Content build.log -Tail 80
+          if ($code -ne 0) {
+            # Failure reason as a public annotation (job logs need admin rights to download).
+            $tail = (Get-Content build.log -Tail 30) -join '%0A'
+            Write-Output "::error title=Paketbau fehlgeschlagen::$tail"
+            exit $code
+          }
+      - uses: actions/upload-artifact@v5
         with:
           name: FinanzManager-Windows
           path: |
