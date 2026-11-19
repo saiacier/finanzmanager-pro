@@ -71,6 +71,10 @@
     },
     "pyinstaller-hooks-contrib": {
       "license": "Apache-2.0 / GPL-2.0-or-later (Laufzeit-Hooks: Apache-2.0)"
+    },
+    "packaging": {
+      "license": "Apache-2.0 OR BSD-2-Clause",
+      "note": "Windows: von der pywebview-Windows-Brücke eingebunden; Lizenztexte beider Varianten mitgeliefert"
     }
   },
   "runtime_libraries": {
