@@ -27,7 +27,7 @@ WORK,DIST,RELEASES=BUILD_ROOT/'pyinstaller',BUILD_ROOT/'dist',ROOT/'releases'
 SYSTEM='macOS' if MAC else 'Windows' if WINDOWS else sys.platform
 ARCHIVE=RELEASES/('FinanzManager-Pro-'+VERSION+'-'+SYSTEM+'.zip')
 LEGAL_FILES=['FinanzManager.md','Datenschutz.md','Impressum.md','Komponenten.md','Sicherheit.md','GPL-3.0.txt','MIT-Gestaltung.txt']
-EXCLUDES=['tkinter','_tkinter','setuptools','_distutils_hack','pkg_resources','distutils','numpy','pytest','IPython','PIL','webview.platforms.qt','webview.platforms.gtk','webview.platforms.android','webview.platforms.cef','PyQt5','PyQt6','PySide2','PySide6','gi']
+EXCLUDES=['tkinter','_tkinter','setuptools','_distutils_hack','pkg_resources','numpy','pytest','IPython','PIL','webview.platforms.qt','webview.platforms.gtk','webview.platforms.android','webview.platforms.cef','PyQt5','PyQt6','PySide2','PySide6','gi']
 FORBIDDEN_SUFFIXES=('.sqlite3','.sqlite3-journal','.sqlite3-wal','.sqlite3-shm','.fmb','.key','.pem','.p12')
 FORBIDDEN_NAMES={'programm.json','.DS_Store'}
 
