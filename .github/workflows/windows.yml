@@ -25,9 +25,13 @@ jobs:
           work\build-env\Scripts\python -m pip install --disable-pip-version-check -r scripts\requirements-windows.txt
           # Installer tool only; keeps it out of the analysed program (license allowlist).
           work\build-env\Scripts\python -m pip uninstall -y --disable-pip-version-check setuptools
+      - name: Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup --no-progress -y }
       - name: Tests
         run: work\build-env\Scripts\python -m unittest discover -s tests
-      - name: Paket bauen und Selbsttest
+      - name: Paket und Installer bauen, Selbsttest und Testinstallation
         shell: pwsh
         run: |
           work\build-env\Scripts\python scripts\build.py *> build.log
@@ -44,6 +48,7 @@ jobs:
           name: FinanzManager-Windows
           path: |
             releases/FinanzManager-Pro-*-Windows.zip
+            releases/FinanzManager-Pro-*-Windows-Setup.exe
             releases/verification-Windows.json
           if-no-files-found: error
           retention-days: 30

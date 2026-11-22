@@ -1,0 +1,6 @@
+# Same bytes on every system: legal texts and sources keep LF line endings, also on Windows builds.
+* text=auto eol=lf
+*.png binary
+*.icns binary
+*.ico binary
+*.zip binary

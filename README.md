@@ -9,7 +9,8 @@ Lokale Haushalts- und Budgetsoftware: Buchungen, CSV-Import, Budgets, Sparziele 
 |---|---|
 | `apps/FinanzManager/Web` | Oberfläche: HTML-Vorlage, CSS, JavaScript. Die einzige Oberfläche, für alle Systeme gleich. |
 | `apps/FinanzManager/desktop` | Programmfenster (`finanzmanager_desktop.py`) |
-| `apps/FinanzManager/Resources` | App-Symbol |
+| `apps/FinanzManager/Resources` | App-Symbol (macOS `.icns`, Windows `.ico`) |
+| `apps/FinanzManager/windows` | Windows-Installationsprogramm (Inno Setup) |
 | `platform/python/financecore` | Programmkern in Python: Datenbank (`store.py`), Datenordner und Zustimmung (`platform.py`), Rechtstexte (`documents.py`), Fenster und Dialoge (`host.py`, `desktop.py`), lokaler Seitenserver (`pageserver.py`) |
 | `platform/terms` | Nutzungsbedingungen, Datenschutz, Impressum, Lizenz- und Sicherheitshinweise. Werden beim Bau eingebettet. |
 | `platform/compliance` | Freigabeliste der Python-Komponenten und zusätzliche Lizenztexte |
@@ -51,7 +52,7 @@ work\build-env\Scripts\python -m unittest discover -s tests
 work\build-env\Scripts\python scripts\build.py
 ```
 
-`build.py` prüft jede mitgelieferte Python-Komponente gegen `platform/compliance/python-policy.json`, legt die Lizenztexte unter `Legal/PythonProgram` ab, sucht nach verbotenen Dateien, signiert (macOS ad hoc oder mit `FINANCE_CODESIGN_IDENTITY`, Windows mit `FINANCE_SIGNTOOL_CERT`), startet das fertige Programm einmal isoliert mit einem temporären Datenordner und schreibt das ZIP nach `releases/`. Zwischendateien und das fertige Programm liegen außerhalb synchronisierter Ordner: macOS `~/Library/Caches/FinanzManager-build`, Windows `%LOCALAPPDATA%\FinanzManager-build` (änderbar mit `FINANCE_BUILD_DIR`). Danach auf einem Rechner `prepare_download.py` und `audit_download.py` ausführen, nachdem beide ZIPs in `releases/` liegen.
+`build.py` prüft jede mitgelieferte Python-Komponente gegen `platform/compliance/python-policy.json`, legt die Lizenztexte unter `Legal/PythonProgram` ab, sucht nach verbotenen Dateien, signiert (macOS ad hoc oder mit `FINANCE_CODESIGN_IDENTITY`, Windows mit `FINANCE_SIGNTOOL_CERT`), startet das fertige Programm einmal isoliert mit einem temporären Datenordner und schreibt das ZIP nach `releases/`. Zwischendateien und das fertige Programm liegen außerhalb synchronisierter Ordner: macOS `~/Library/Caches/FinanzManager-build`, Windows `%LOCALAPPDATA%\FinanzManager-build` (änderbar mit `FINANCE_BUILD_DIR`). Unter Windows entsteht zusätzlich mit Inno Setup 6 der Installer `FinanzManager-Pro-<Version>-Windows-Setup.exe` (Installation pro Benutzer ohne Administratorrechte); er wird still in einen temporären Ordner installiert, das installierte Programm wird mit dem Selbsttest geprüft und wieder deinstalliert. Ins Downloadpaket kommt für Windows nur der Installer, die portable ZIP bleibt in `releases/`. Danach auf einem Rechner `prepare_download.py` und `audit_download.py` ausführen, nachdem beide ZIPs in `releases/` liegen.
 
 ## Entwicklung mit KI-Unterstützung
 

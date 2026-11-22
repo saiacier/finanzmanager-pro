@@ -17,7 +17,8 @@ SKIP_NAMES={'.DS_Store','documents_generated.py'}
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 def main():
-    programs=sorted(ROOT.glob('releases/FinanzManager-Pro-'+VERSION+'-*.zip'))
+    # Windows is offered as installer; the portable ZIP stays in releases/ for special cases.
+    programs=sorted(p for p in ROOT.glob('releases/FinanzManager-Pro-'+VERSION+'-*') if p.name.endswith(('-macOS.zip','-Windows-Setup.exe')))
     if not programs:sys.exit('Bitte zuerst scripts/build.py ausführen.')
     # Empty the folder instead of replacing it: synced folders (OneDrive) may remove a recreated folder.
     OUT.mkdir(parents=True,exist_ok=True)
@@ -32,7 +33,7 @@ def main():
         for item in SOURCE_ITEMS:
             for file in sorted([ROOT/item] if (ROOT/item).is_file() else (ROOT/item).rglob('*')):
                 if file.is_file() and file.name not in SKIP_NAMES and '__pycache__' not in file.parts:z.write(file,prefix+file.relative_to(ROOT).as_posix())
-    (OUT/'SHA256SUMS.txt').write_text(''.join(sha(f)+'  '+f.name+'\n' for f in [*sorted(OUT.glob('FinanzManager-Pro-'+VERSION+'-*.zip'))]))
+    (OUT/'SHA256SUMS.txt').write_text(''.join(sha(f)+'  '+f.name+'\n' for f in sorted(p for p in OUT.glob('FinanzManager-Pro-'+VERSION+'-*') if p.suffix in ('.zip','.exe'))))
     archive=ROOT/'releases'/('FinanzManager-Downloadpaket-'+VERSION+'.zip')
     with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED) as z:
         for file in sorted(OUT.rglob('*')):
