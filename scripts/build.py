@@ -14,7 +14,7 @@ isolated start with a temporary data folder (--self-test) and ZIP with checksum.
 No user data or private keys are read or packaged.
 """
 from pathlib import Path
-import ast,hashlib,importlib.metadata as metadata,json,os,plistlib,re,shutil,struct,subprocess,sys,sysconfig,tempfile,zipfile
+import ast,hashlib,importlib.metadata as metadata,json,os,plistlib,re,shutil,subprocess,sys,sysconfig,tempfile,time,zipfile
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'platform/python'))
 from financecore import BUILD,BUNDLE_ID,PRODUCT,VERSION
@@ -26,8 +26,9 @@ BUILD_ROOT=Path(os.environ.get('FINANCE_BUILD_DIR') or (Path.home()/'Library/Cac
 WORK,DIST,RELEASES=BUILD_ROOT/'pyinstaller',BUILD_ROOT/'dist',ROOT/'releases'
 SYSTEM='macOS' if MAC else 'Windows' if WINDOWS else sys.platform
 ARCHIVE=RELEASES/('FinanzManager-Pro-'+VERSION+'-'+SYSTEM+'.zip')
+INSTALLER=RELEASES/('FinanzManager-Pro-'+VERSION+'-Windows-Setup.exe')
 LEGAL_FILES=['FinanzManager.md','Datenschutz.md','Impressum.md','Komponenten.md','Sicherheit.md','GPL-3.0.txt','MIT-Gestaltung.txt']
-EXCLUDES=['tkinter','_tkinter','numpy','pytest','IPython','PIL','webview.platforms.qt','webview.platforms.gtk','webview.platforms.android','webview.platforms.cef','PyQt5','PyQt6','PySide2','PySide6','gi']
+EXCLUDES=['tkinter','_tkinter','setuptools','_distutils_hack','pkg_resources','numpy','pytest','IPython','PIL','webview.platforms.qt','webview.platforms.gtk','webview.platforms.android','webview.platforms.cef','PyQt5','PyQt6','PySide2','PySide6','gi']
 FORBIDDEN_SUFFIXES=('.sqlite3','.sqlite3-journal','.sqlite3-wal','.sqlite3-shm','.fmb','.key','.pem','.p12')
 FORBIDDEN_NAMES={'programm.json','.DS_Store'}
 
@@ -49,15 +50,9 @@ def prepare():
     shutil.copy(ROOT/'platform/terms/Komponenten.md',legal/'README.md')
     return web,legal
 
-def ico(png,target):
-    """Windows icon with the PNG image embedded (supported since Windows Vista)."""
-    data=Path(png).read_bytes()
-    Path(target).write_bytes(struct.pack('<HHH',0,1,1)+struct.pack('<BBBBHHII',0,0,0,0,1,32,len(data),22)+data)
-    return target
-
 def pyinstaller(web,legal):
     WORK.mkdir(parents=True,exist_ok=True);sep=os.pathsep
-    icon=ROOT/'apps/FinanzManager/Resources/AppIcon.icns' if MAC else ico(ROOT/'apps/FinanzManager/Web/assets/app-icon.png',WORK/'FinanzManager.ico')
+    icon=ROOT/'apps/FinanzManager/Resources'/('AppIcon.icns' if MAC else 'AppIcon.ico')
     args=[sys.executable,'-m','PyInstaller','--noconfirm','--clean','--windowed','--onedir','--name',PRODUCT,'--distpath',DIST,'--workpath',WORK,'--specpath',WORK,
           '--icon',icon,'--paths',ROOT/'platform/python','--collect-submodules','financecore','--add-data',str(web)+sep+'Web','--add-data',str(legal)+sep+'Legal']
     if MAC:args+=['--osx-bundle-identifier',BUNDLE_ID]
@@ -104,8 +99,13 @@ def notices(resources):
             if '.dist-info/' in text and ('/licenses/' in text or Path(text).name.upper().startswith(('LICENSE','LICENCE','COPYING','NOTICE','AUTHORS'))):
                 target=out/name/text.split('.dist-info/',1)[1];target.parent.mkdir(parents=True,exist_ok=True);shutil.copy(dist.locate_file(item),target);copied+=1
         if entry.get('license_file'):(out/name).mkdir(exist_ok=True);shutil.copy(ROOT/entry['license_file'],out/name/'LICENSE.txt');copied+=1
+        if WINDOWS:
+            for extra in entry.get('windows_license_files',[]):(out/name).mkdir(exist_ok=True);shutil.copy(ROOT/extra,out/name/Path(extra).name);copied+=1
         if not copied:raise ReleaseError('Lizenztext fehlt für '+name)
-    shutil.copy(Path(sysconfig.get_paths()['stdlib'])/'LICENSE.txt',out/'CPython-LICENSE.txt')
+    # macOS/Linux keep the CPython license in the standard library, Windows in the install folder.
+    cpython=next((p for p in [Path(sysconfig.get_paths()['stdlib'])/'LICENSE.txt',Path(sys.base_prefix)/'LICENSE.txt'] if p.is_file()),None)
+    if not cpython:raise ReleaseError('Lizenztext der Python-Laufzeit fehlt.')
+    shutil.copy(cpython,out/'CPython-LICENSE.txt')
     (out/'Runtime').mkdir()
     for lib,entry in policy['runtime_libraries'].items():(out/'Runtime'/(lib+'.txt')).write_text(entry['license']+'\n'+entry['notice']+'\n')
     (out/'components.json').write_text(json.dumps(dict(product=PRODUCT,version=VERSION,python=sys.version.split()[0],pyinstaller=metadata.version('pyinstaller'),components=components),indent=2,ensure_ascii=False)+'\n')
@@ -136,6 +136,11 @@ def native_check(folder):
         checked+=1
     return checked
 
+def sign_file(path):
+    """Authenticode for a Windows file when a certificate is configured."""
+    certificate=os.environ.get('FINANCE_SIGNTOOL_CERT')
+    if certificate:run('signtool','sign','/fd','SHA256','/f',certificate,'/tr','http://timestamp.digicert.com','/td','SHA256',path)
+
 def sign(app):
     if MAC:
         identity=os.environ.get('FINANCE_CODESIGN_IDENTITY','-')
@@ -143,9 +148,8 @@ def sign(app):
         run('/usr/bin/codesign','--force','--deep','--sign',identity,*(['--options','runtime','--timestamp'] if identity!='-' else []),app)
         run('/usr/bin/codesign','--verify','--deep','--strict',app)
         return 'Developer ID' if identity!='-' else 'ad-hoc'
-    certificate=os.environ.get('FINANCE_SIGNTOOL_CERT')
-    if certificate:run('signtool','sign','/fd','SHA256','/f',certificate,'/tr','http://timestamp.digicert.com','/td','SHA256',layout()[2]);return 'Authenticode'
-    return 'unsigned'
+    sign_file(layout()[2])
+    return 'Authenticode' if os.environ.get('FINANCE_SIGNTOOL_CERT') else 'unsigned'
 
 def self_test(executable):
     """Isolated start with a temporary data folder: the window must show the interface with the
@@ -155,10 +159,33 @@ def self_test(executable):
         test=Platform(home);test.set(terms_sha256=documents.TERMS_SHA256,terms_version=documents.TERMS_VERSION,terms_accepted_at='self-test')
         result=Path(home)/'self-test.json'
         subprocess.run([str(executable),'--home',home,'--self-test',str(result)],timeout=180,check=False)
-        outcome=json.loads(result.read_text()) if result.exists() else {}
+        outcome=json.loads(result.read_text(encoding='utf-8')) if result.exists() else {}
         if not outcome.get('ok') or not outcome.get('frozen'):raise ReleaseError('Selbsttest fehlgeschlagen: '+json.dumps(outcome,ensure_ascii=False))
         if not (Path(home)/'finanzmanager.sqlite3').exists():raise ReleaseError('Selbsttest hat keine Datenbank angelegt.')
         return outcome
+
+def installer(folder):
+    """Windows: per-user installer with Inno Setup, then a silent test installation in a temporary
+    folder, the self-test of the installed program and a silent uninstall."""
+    iscc=os.environ.get('FINANCE_ISCC') or str(Path(os.environ.get('ProgramFiles(x86)',r'C:\Program Files (x86)'))/'Inno Setup 6/ISCC.exe')
+    if not Path(iscc).is_file():raise ReleaseError('Inno Setup 6 (ISCC.exe) fehlt; Pfad mit FINANCE_ISCC angeben.')
+    source=ROOT/'apps/FinanzManager/windows'
+    run(iscc,'/Q','/DAppVersion='+VERSION,'/DSourceDir='+str(folder),'/DOutputDir='+str(RELEASES),'/DInfoFile='+str(source/'installer-info.txt'),
+        '/DIconFile='+str(ROOT/'apps/FinanzManager/Resources/AppIcon.ico'),source/'FinanzManager.iss')
+    if not INSTALLER.is_file():raise ReleaseError('Installer wurde nicht erzeugt.')
+    sign_file(INSTALLER)
+    with tempfile.TemporaryDirectory() as target:
+        app=Path(target)/'FinanzManager Pro'
+        run(INSTALLER,'/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CURRENTUSER','/DIR='+str(app),'/TASKS=','/LOG='+str(Path(target)/'install.log'))
+        outcome=self_test(app/(PRODUCT+'.exe'))
+        uninstaller=next(app.glob('unins*.exe'),None)
+        if not uninstaller:raise ReleaseError('Deinstallationsprogramm fehlt.')
+        run(uninstaller,'/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART')
+        for _ in range(60):
+            if not (app/(PRODUCT+'.exe')).exists():break
+            time.sleep(1)
+        else:raise ReleaseError('Deinstallation hat das Programm nicht entfernt.')
+    return sha(INSTALLER),outcome
 
 def package(folder):
     RELEASES.mkdir(exist_ok=True)
@@ -173,7 +200,8 @@ def package(folder):
 
 def main():
     # A failed build must never leave an older package that looks current.
-    ARCHIVE.unlink(missing_ok=True);(RELEASES/('verification-'+SYSTEM+'.json')).unlink(missing_ok=True)
+    for old in (ARCHIVE,INSTALLER,RELEASES/('verification-'+SYSTEM+'.json')):
+        if old!=INSTALLER or WINDOWS:old.unlink(missing_ok=True)
     web,legal=prepare()
     pyinstaller(web,legal)
     folder,resources,executable=layout()
@@ -182,9 +210,11 @@ def main():
     clean(folder);checked=native_check(folder);signature=sign(folder)
     outcome=self_test(executable)
     digest=package(folder)
+    setup=installer(folder) if WINDOWS else None
     manifest=dict(product=PRODUCT,version=VERSION,build=BUILD,system=SYSTEM,archive=ARCHIVE.name,sha256=digest,terms_version=documents.TERMS_VERSION,terms_sha256=documents.TERMS_SHA256,
                   signing=signature,notarized=False,python=sys.version.split()[0],components=[c['name']+' '+c['version'] for c in components],native_files_checked=checked,self_test=outcome,public_release=False)
-    (RELEASES/('verification-'+SYSTEM+'.json')).write_text(json.dumps(manifest,indent=2,ensure_ascii=False)+'\n')
+    if setup:manifest.update(installer=INSTALLER.name,installer_sha256=setup[0],installer_self_test=setup[1])
+    (RELEASES/('verification-'+SYSTEM+'.json')).write_text(json.dumps(manifest,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
     print(ARCHIVE);print(digest)
 
 if __name__=='__main__':

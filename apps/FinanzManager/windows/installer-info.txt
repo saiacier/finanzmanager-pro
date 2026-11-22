@@ -1,0 +1,15 @@
+﻿FinanzManager Pro – kostenloses Haushaltsbuch für Windows
+
+Installation
+Das Programm wird nur für dein Benutzerkonto installiert und benötigt keine Administratorrechte. Es legt einen Eintrag im Startmenü an; auf Wunsch zusätzlich eine Verknüpfung auf dem Desktop.
+
+Deine Daten
+Buchungen, Einstellungen und Sicherungen liegen getrennt vom Programm unter AppData\Local\IT-Smarthome\FinanzManager. Updates und Deinstallation lassen diese Daten unverändert. Bitte vor jedem Update ein Backup in der App exportieren.
+
+Nutzungsbedingungen und Datenschutz
+Die Nutzungsbedingungen, Datenschutzinformationen und das Impressum werden beim ersten Start angezeigt und sind danach jederzeit im Programm abrufbar. Die App arbeitet lokal, ohne Konto, ohne Cloud und ohne Werbung.
+
+Lizenz
+FinanzManager Pro ist freie Software unter der GNU General Public License, Version 3 oder später. Die Namen „FinanzManager Pro“ und „IT-Smarthome“ sowie Logos und App-Symbol sind davon ausgenommen. Quellcode: https://it-smarthome.net/downloads
+
+Anbieter: Samuele Timoteo Iacierno, IT & SmartHome Service, Erlenweg 11, 72555 Metzingen

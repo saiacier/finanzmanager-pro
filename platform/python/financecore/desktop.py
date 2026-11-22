@@ -68,7 +68,7 @@ def self_test(window,result,timeout=90):
             except Exception:state={}
             ok=str(state.get('origin','')).startswith('http://127.0.0.1:') and state.get('ready')=='complete' and str(state.get('title','')).startswith('FinanzManager') and not state.get('busy') and not state.get('failed') and 'SQLite' in str(state.get('storage',''))
             if not ok:time.sleep(0.3)
-        Path(result).write_text(json.dumps(dict(ok=ok,title=state.get('title',''),storage=state.get('storage',''),frozen=bool(getattr(sys,'frozen',False))),ensure_ascii=False))
+        Path(result).write_text(json.dumps(dict(ok=ok,title=state.get('title',''),storage=state.get('storage',''),frozen=bool(getattr(sys,'frozen',False))),ensure_ascii=False),encoding='utf-8')
         window.destroy()
     threading.Thread(target=run,daemon=True).start()
 
