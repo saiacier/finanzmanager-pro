@@ -1,5 +1,5 @@
 # Sicherheit, Updates und Meldungen
-Stand 22.11.2026 · FinanzManager Pro 1.3.1
+Stand 22.11.2026 · FinanzManager Pro 1.3.2
 
 Sicherheitskontakt: siacierno@it-smarthome.net
 Betreffvorschlag: FinanzManager – Sicherheitsmeldung

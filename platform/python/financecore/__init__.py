@@ -3,6 +3,6 @@
 """FinanceCore: local storage, legal documents and the program window of FinanzManager Pro
 for macOS and Windows. The HTML/CSS/JS interface is the only interface."""
 PRODUCT='FinanzManager Pro'
-VERSION='1.3.1'
-BUILD='6'
+VERSION='1.3.2'
+BUILD='7'
 BUNDLE_ID='de.finanzmanager.offline'

@@ -1,5 +1,5 @@
 # Komponenten und Lizenzhinweise
-Geprüfter Umfang: FinanzManager 1.3.1, Projektstand 22.11.2026, Ausgaben für macOS und Windows.
+Geprüfter Umfang: FinanzManager 1.3.2, Projektstand 22.11.2026, Ausgaben für macOS und Windows.
 
 Lizenz des FinanzManagers
 FinanzManager Pro – Copyright (C) 2026 Samuele Timoteo Iacierno.
